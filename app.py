@@ -3,13 +3,20 @@ from docx import Document
 from datetime import datetime
 from openpyxl import load_workbook
 from io import BytesIO
-import os
 
 app = Flask(__name__)
 
 def formatar_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, str(cpf)))
     return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
+
+def formatar_rg(rg):
+    rg = ''.join(filter(str.isdigit, str(rg)))
+    return f'{rg[:2]}.{rg[2:5]}.{rg[5:8]}-{rg[8:]}' if len(rg) == 9 else rg
+
+def formatar_cep(cep):
+    cep = ''.join(filter(str.isdigit, str(cep)))
+    return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
 
 def substituir_texto_formatado(paragrafos, substituicoes):
     for paragrafo in paragrafos:
@@ -20,10 +27,8 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                         run.text = run.text.replace(chave, valor)
 
 def carregar_dados(nome_busca):
-    excel_path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
-    wb = load_workbook(excel_path, data_only=True)
+    wb = load_workbook("cooperados.xlsx", data_only=True)
     ws = wb.active
-
     colunas = [cell.value for cell in ws[1]]
     for row in ws.iter_rows(min_row=2, values_only=True):
         dados = dict(zip(colunas, row))
@@ -34,8 +39,7 @@ def carregar_dados(nome_busca):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        tipo = request.form["tipo"]
-
+        tipo = request.form.get("tipo", "").upper()
         now = datetime.now()
         data_atual = now.strftime("%d/%m/%Y")
         hora_atual = now.strftime("%H:%M")
@@ -53,22 +57,22 @@ def index():
                 "OCUPACAO": dados.get("Ocupação", ""),
                 "CPFCOOPERADO": formatar_cpf(dados.get("CPF/CNPJ", "")),
                 "ENDERECO": dados.get("Endereço", ""),
-                "CEP": dados.get("CEP", ""),
+                "CEP": formatar_cep(dados.get("CEP", "")),
                 "CIDADE": dados.get("Cidade", ""),
                 "DATA": data_atual,
                 "HORA": hora_atual,
-                "RGCOOPERADO": request.form["rg"],
+                "RGCOOPERADO": formatar_rg(request.form["rg"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
+                "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
 
-            doc_path = os.path.join(os.path.dirname(__file__), "modelo.docx")
-            doc = Document(doc_path)
+            doc = Document("modelo.docx")
 
-        else:  # PJ
+        elif tipo == "PJ":
             nome_empresa = request.form["nome_empresa"]
             dados = carregar_dados(nome_empresa)
 
@@ -76,7 +80,7 @@ def index():
                 return "Empresa não encontrada."
 
             substituicoes = {
-                "NOMEDAEMPRESA": nome_empresa,
+                "EMPRESA": nome_empresa.strip(),
                 "PESSOAJURIDICA": formatar_cpf(dados.get("CPF/CNPJ", "")),
                 "LUGAR": dados.get("Endereço", ""),
                 "CITY": dados.get("Cidade", ""),
@@ -84,22 +88,23 @@ def index():
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
                 "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
-                "RGCOOPERADO": request.form["rg"],
+                "RGCOOPERADO": formatar_rg(request.form["rg"]),
                 "ENDERECO": request.form["endereco"],
-                "CEP": request.form["cep"],
+                "CEP": formatar_cep(request.form["cep"]),
                 "CIDADE": request.form["cidade"],
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
+                "LOCAL": request.form["local"],
                 "DATA": data_atual,
                 "HORA": hora_atual,
-                "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
 
-            doc_path = os.path.join(os.path.dirname(__file__), "modelo_pj.docx")
-            doc = Document(doc_path)
+            doc = Document("modelo_pj.docx")
+        else:
+            return "Tipo inválido."
 
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
@@ -111,6 +116,7 @@ def index():
         doc.save(output)
         output.seek(0)
 
-        return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
+        nome_arquivo = f"TERMO_{substituicoes['NOMECOOPERADO'].replace(' ', '_')}_{tipo}.docx"
+        return send_file(output, as_attachment=True, download_name=nome_arquivo)
 
     return render_template("index.html")
