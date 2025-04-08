@@ -3,6 +3,7 @@ from docx import Document
 from datetime import datetime
 from openpyxl import load_workbook
 from io import BytesIO
+import os
 
 app = Flask(__name__)
 
@@ -27,8 +28,10 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                         run.text = run.text.replace(chave, valor)
 
 def carregar_dados(nome_busca):
-    wb = load_workbook("cooperados.xlsx", data_only=True)
+    path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
+    wb = load_workbook(path, data_only=True)
     ws = wb.active
+
     colunas = [cell.value for cell in ws[1]]
     for row in ws.iter_rows(min_row=2, values_only=True):
         dados = dict(zip(colunas, row))
@@ -40,6 +43,7 @@ def carregar_dados(nome_busca):
 def index():
     if request.method == "POST":
         tipo = request.form.get("tipo", "").upper()
+
         now = datetime.now()
         data_atual = now.strftime("%d/%m/%Y")
         hora_atual = now.strftime("%H:%M")
@@ -80,7 +84,7 @@ def index():
                 return "Empresa não encontrada."
 
             substituicoes = {
-                "EMPRESA": nome_empresa.strip(),
+                "NOMEDAEMPRESA": nome_empresa,
                 "PESSOAJURIDICA": formatar_cpf(dados.get("CPF/CNPJ", "")),
                 "LUGAR": dados.get("Endereço", ""),
                 "CITY": dados.get("Cidade", ""),
@@ -95,16 +99,17 @@ def index():
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
-                "LOCAL": request.form["local"],
                 "DATA": data_atual,
                 "HORA": hora_atual,
+                "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
 
             doc = Document("modelo_pj.docx")
+
         else:
-            return "Tipo inválido."
+            return "Tipo inválido. Use PF, AGRO ou PJ."
 
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
@@ -116,7 +121,6 @@ def index():
         doc.save(output)
         output.seek(0)
 
-        nome_arquivo = f"TERMO_{substituicoes['NOMECOOPERADO'].replace(' ', '_')}_{tipo}.docx"
-        return send_file(output, as_attachment=True, download_name=nome_arquivo)
+        return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
 
     return render_template("index.html")
