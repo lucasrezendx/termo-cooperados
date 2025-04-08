@@ -3,6 +3,7 @@ from docx import Document
 from datetime import datetime
 from openpyxl import load_workbook
 from io import BytesIO
+import os
 
 app = Flask(__name__)
 
@@ -19,7 +20,8 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                         run.text = run.text.replace(chave, valor)
 
 def carregar_dados(nome_busca):
-    wb = load_workbook("cooperados.xlsx", data_only=True)
+    excel_path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
+    wb = load_workbook(excel_path, data_only=True)
     ws = wb.active
 
     colunas = [cell.value for cell in ws[1]]
@@ -63,7 +65,8 @@ def index():
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
 
-            doc = Document("modelo.docx")
+            doc_path = os.path.join(os.path.dirname(__file__), "modelo.docx")
+            doc = Document(doc_path)
 
         else:  # PJ
             nome_empresa = request.form["nome_empresa"]
@@ -95,7 +98,8 @@ def index():
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
 
-            doc = Document("modelo_pj.docx")
+            doc_path = os.path.join(os.path.dirname(__file__), "modelo_pj.docx")
+            doc = Document(doc_path)
 
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
