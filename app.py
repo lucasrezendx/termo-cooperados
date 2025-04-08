@@ -1,9 +1,7 @@
-
-from flask import Flask, render_template, request, send_file, redirect, url_for
-import pandas as pd
+from flask import Flask, render_template, request, send_file
 from docx import Document
 from datetime import datetime
-import os
+from openpyxl import load_workbook
 from io import BytesIO
 
 app = Flask(__name__)
@@ -20,11 +18,21 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                     if chave in run.text:
                         run.text = run.text.replace(chave, valor)
 
+def carregar_dados(nome_busca):
+    wb = load_workbook("cooperados.xlsx", data_only=True)
+    ws = wb.active
+
+    colunas = [cell.value for cell in ws[1]]
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        dados = dict(zip(colunas, row))
+        if dados["Nome"] and dados["Nome"].strip().lower() == nome_busca.strip().lower():
+            return dados
+    return None
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         tipo = request.form["tipo"]
-        df = pd.read_excel("cooperados.xlsx", dtype=str).fillna("")
 
         now = datetime.now()
         data_atual = now.strftime("%d/%m/%Y")
@@ -32,21 +40,19 @@ def index():
 
         if tipo in ["PF", "AGRO"]:
             nome = request.form["nome"]
-            linha = df[df["Nome"].str.strip().str.lower() == nome.strip().lower()]
+            dados = carregar_dados(nome)
 
-            if linha.empty:
+            if not dados:
                 return "Cooperado não encontrado."
 
-            dados = linha.iloc[0]
-
             substituicoes = {
-                "NOMECOOPERADO": dados["Nome"],
-                "ESTADOCIVIL": dados["Estado Civil"],
-                "OCUPACAO": dados["Ocupação"],
-                "CPFCOOPERADO": formatar_cpf(dados["CPF/CNPJ"]),
-                "ENDERECO": dados["Endereço"],
-                "CEP": dados["CEP"],
-                "CIDADE": dados["Cidade"],
+                "NOMECOOPERADO": dados.get("Nome", ""),
+                "ESTADOCIVIL": dados.get("Estado Civil", ""),
+                "OCUPACAO": dados.get("Ocupação", ""),
+                "CPFCOOPERADO": formatar_cpf(dados.get("CPF/CNPJ", "")),
+                "ENDERECO": dados.get("Endereço", ""),
+                "CEP": dados.get("CEP", ""),
+                "CIDADE": dados.get("Cidade", ""),
                 "DATA": data_atual,
                 "HORA": hora_atual,
                 "RGCOOPERADO": request.form["rg"],
@@ -61,18 +67,16 @@ def index():
 
         else:  # PJ
             nome_empresa = request.form["nome_empresa"]
-            linha = df[df["Nome"].str.strip().str.lower() == nome_empresa.strip().lower()]
+            dados = carregar_dados(nome_empresa)
 
-            if linha.empty:
+            if not dados:
                 return "Empresa não encontrada."
-
-            dados = linha.iloc[0]
 
             substituicoes = {
                 "NOMEDAEMPRESA": nome_empresa,
-                "PESSOAJURIDICA": formatar_cpf(dados["CPF/CNPJ"]),
-                "LUGAR": dados["Endereço"],
-                "CITY": dados["Cidade"],
+                "PESSOAJURIDICA": formatar_cpf(dados.get("CPF/CNPJ", "")),
+                "LUGAR": dados.get("Endereço", ""),
+                "CITY": dados.get("Cidade", ""),
                 "NOMECOOPERADO": request.form["nome_cooperado"],
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
