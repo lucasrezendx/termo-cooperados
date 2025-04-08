@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerar Documento</title>
+</head>
+<body>
+  <h2>Gerar Documento</h2>
+  <form method="POST">
+    <label>Tipo:</label>
+    <select name="tipo">
+      <option value="PJ">Pessoa Jurídica</option>
+      <option value="PF">Pessoa Física</option>
+      <option value="AGRO">Agro</option>
+    </select><br><br>
+
+    <label>Nome da Empresa/Cooperado:</label>
+    <input type="text" name="nome_empresa" required><br><br>
+
+    <label>Local (preenchido manualmente):</label>
+    <input type="text" name="local" required><br><br>
+
+    <label>Nome do Colaborador:</label>
+    <input type="text" name="nome_colaborador" required><br><br>
+
+    <label>CPF do Colaborador:</label>
+    <input type="text" name="cpf_colaborador" required><br><br>
+
+    <label>Apelido do Dispositivo:</label>
+    <input type="text" name="apelido" required><br><br>
+
+    <label>Modelo do Dispositivo:</label>
+    <input type="text" name="modelo" required><br><br>
+
+    <label>Chave Multi Canal:</label>
+    <input type="text" name="chave" required><br><br>
+
+    <button type="submit">Gerar Documento</button>
+  </form>
+</body>
+</html>
