@@ -2,40 +2,121 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Gerar Documento</title>
+  <title>Gerador de Termos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      max-width: 600px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+  <script>
+    function toggleFields() {
+      const tipo = document.getElementById("tipo").value;
+      document.getElementById("grupo_pf_agro").style.display = (tipo === "PF" || tipo === "AGRO") ? "block" : "none";
+      document.getElementById("grupo_pj").style.display = (tipo === "PJ") ? "block" : "none";
+    }
+  </script>
 </head>
 <body>
-  <h2>Gerar Documento</h2>
-  <form method="POST" action="/">
-    <label for="tipo">Tipo:</label>
-    <select name="tipo" id="tipo" required>
-      <option value="PJ">Pessoa Jurídica</option>
+  <h1>Gerador de Termos</h1>
+  <form method="POST">
+    <label for="tipo">Tipo de cooperado:</label>
+    <select id="tipo" name="tipo" onchange="toggleFields()" required>
+      <option value="">Selecione</option>
       <option value="PF">Pessoa Física</option>
       <option value="AGRO">Agro</option>
-    </select><br><br>
+      <option value="PJ">Pessoa Jurídica</option>
+    </select>
 
-    <label for="nome_empresa">Nome da Empresa/Cooperado:</label>
-    <input type="text" name="nome_empresa" id="nome_empresa" required><br><br>
+    <!-- PF/AGRO -->
+    <div id="grupo_pf_agro" class="hidden">
+      <label for="nome">Nome do cooperado:</label>
+      <input type="text" id="nome" name="nome">
 
-    <label for="local">Local:</label>
-    <input type="text" name="local" id="local" required><br><br>
+      <label for="rg">RG do cooperado:</label>
+      <input type="text" id="rg" name="rg">
 
-    <label for="nome_colaborador">Nome do Colaborador:</label>
-    <input type="text" name="nome_colaborador" id="nome_colaborador" required><br><br>
+      <label for="apelido">Apelido do dispositivo:</label>
+      <input type="text" id="apelido" name="apelido">
 
-    <label for="cpf_colaborador">CPF do Colaborador:</label>
-    <input type="text" name="cpf_colaborador" id="cpf_colaborador" required><br><br>
+      <label for="modelo">Modelo do dispositivo:</label>
+      <input type="text" id="modelo" name="modelo">
 
-    <label for="apelido">Apelido do Dispositivo:</label>
-    <input type="text" name="apelido" id="apelido" required><br><br>
+      <label for="chave">Chave multicanal:</label>
+      <input type="text" id="chave" name="chave">
 
-    <label for="modelo">Modelo do Dispositivo:</label>
-    <input type="text" name="modelo" id="modelo" required><br><br>
+      <label for="local">Local:</label>
+      <input type="text" id="local" name="local">
 
-    <label for="chave">Chave Multicanal:</label>
-    <input type="text" name="chave" id="chave" required><br><br>
+      <label for="colaborador">Nome do colaborador:</label>
+      <input type="text" id="colaborador" name="colaborador">
 
-    <button type="submit">Gerar Documento</button>
+      <label for="cpf_colaborador">CPF do colaborador:</label>
+      <input type="text" id="cpf_colaborador" name="cpf_colaborador">
+    </div>
+
+    <!-- PJ -->
+    <div id="grupo_pj" class="hidden">
+      <label for="nome_empresa">Nome da empresa:</label>
+      <input type="text" id="nome_empresa" name="nome_empresa">
+
+      <label for="nome_cooperado">Nome do cooperado:</label>
+      <input type="text" id="nome_cooperado" name="nome_cooperado">
+
+      <label for="estado_civil">Estado civil:</label>
+      <input type="text" id="estado_civil" name="estado_civil">
+
+      <label for="ocupacao">Ocupação:</label>
+      <input type="text" id="ocupacao" name="ocupacao">
+
+      <label for="cpf">CPF do cooperado:</label>
+      <input type="text" id="cpf" name="cpf">
+
+      <label for="rg">RG do cooperado:</label>
+      <input type="text" id="rg" name="rg">
+
+      <label for="endereco">Endereço:</label>
+      <input type="text" id="endereco" name="endereco">
+
+      <label for="cep">CEP:</label>
+      <input type="text" id="cep" name="cep">
+
+      <label for="cidade">Cidade:</label>
+      <input type="text" id="cidade" name="cidade">
+
+      <label for="apelido">Apelido do dispositivo:</label>
+      <input type="text" id="apelido" name="apelido">
+
+      <label for="modelo">Modelo do dispositivo:</label>
+      <input type="text" id="modelo" name="modelo">
+
+      <label for="chave">Chave multicanal:</label>
+      <input type="text" id="chave" name="chave">
+
+      <label for="local">Local:</label>
+      <input type="text" id="local" name="local">
+
+      <label for="colaborador">Nome do colaborador:</label>
+      <input type="text" id="colaborador" name="colaborador">
+
+      <label for="cpf_colaborador">CPF do colaborador:</label>
+      <input type="text" id="cpf_colaborador" name="cpf_colaborador">
+    </div>
+
+    <button type="submit" style="margin-top: 20px;">Gerar Documento</button>
   </form>
 </body>
 </html>
