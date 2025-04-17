@@ -1,126 +1,76 @@
 from flask import Flask, render_template, request, send_file
+import pandas as pd
+import os
 from docx import Document
 from datetime import datetime
-from openpyxl import load_workbook
-from io import BytesIO
-import os
 
 app = Flask(__name__)
 
-def formatar_cpf(cpf):
-    cpf = ''.join(filter(str.isdigit, str(cpf)))
-    return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
+# Função para ler os dados do Excel
+def buscar_dados(nome):
+    df = pd.read_excel("cooperados.xlsx")
+    dados = df[df["Nome"] == nome].iloc[0]
+    return dados
 
-def formatar_rg(rg):
-    rg = ''.join(filter(str.isdigit, str(rg)))
-    return f'{rg[:2]}.{rg[2:5]}.{rg[5:8]}-{rg[8:]}' if len(rg) == 9 else rg
-
-def formatar_cep(cep):
-    cep = ''.join(filter(str.isdigit, str(cep)))
-    return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
-
-def substituir_texto_formatado(paragrafos, substituicoes):
-    for paragrafo in paragrafos:
-        for chave, valor in substituicoes.items():
-            if chave in paragrafo.text:
-                for run in paragrafo.runs:
-                    if chave in run.text:
-                        run.text = run.text.replace(chave, valor)
-
-def carregar_dados(nome_busca):
-    path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
-    wb = load_workbook(path, data_only=True)
-    ws = wb.active
-
-    colunas = [cell.value for cell in ws[1]]
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        dados = dict(zip(colunas, row))
-        if dados["Nome"] and dados["Nome"].strip().lower() == nome_busca.strip().lower():
-            return dados
-    return None
-
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def index():
-    if request.method == "POST":
-        tipo = request.form.get("tipo", "").upper()
+    return render_template('index.html')
 
-        now = datetime.now()
-        data_atual = now.strftime("%d/%m/%Y")
-        hora_atual = now.strftime("%H:%M")
+@app.route('/gerar', methods=['POST'])
+def gerar_documento():
+    # Dados do formulário
+    nome = request.form['nome']
+    apelido_dispositivo = request.form['apelido']
+    modelo_dispositivo = request.form['modelo']
+    chave_multicanal = request.form['chave']
+    nome_colaborador = request.form['colaborador']
+    cpf_colaborador = request.form['cpf']
+    tipo_pessoa = request.form['tipo_pessoa']
 
-        if tipo in ["PF", "AGRO"]:
-            nome = request.form["nome"]
-            dados = carregar_dados(nome)
+    # Busca os dados do cooperado
+    dados_cooperado = buscar_dados(nome)
 
-            if not dados:
-                return "Cooperado não encontrado."
+    # Escolhe o modelo do documento conforme o tipo de pessoa
+    if tipo_pessoa == 'PF' or tipo_pessoa == 'AGRO':
+        doc = Document("modelo.docx")
+    elif tipo_pessoa == 'PJ':
+        doc = Document("modelo_pj.docx")
 
-            substituicoes = {
-                "NOMECOOPERADO": dados.get("Nome", ""),
-                "ESTADOCIVIL": dados.get("Estado Civil", ""),
-                "OCUPACAO": dados.get("Ocupação", ""),
-                "CPFCOOPERADO": formatar_cpf(dados.get("CPF/CNPJ", "")),
-                "ENDERECO": dados.get("Endereço", ""),
-                "CEP": formatar_cep(dados.get("CEP", "")),
-                "CIDADE": dados.get("Cidade", ""),
-                "DATA": data_atual,
-                "HORA": hora_atual,
-                "RGCOOPERADO": formatar_rg(request.form["rg"]),
-                "APELIDODISPOSITIVO": request.form["apelido"],
-                "MODELODISPOSITIVO": request.form["modelo"],
-                "CHAVEMULTICANAL": request.form["chave"],
-                "LOCAL": request.form["local"],
-                "NOMECOLABORADOR": request.form["colaborador"],
-                "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
-            }
+    # Preenche os campos do documento
+    for p in doc.paragraphs:
+        if 'NOME_COOPERADO' in p.text:
+            p.text = p.text.replace('NOME_COOPERADO', dados_cooperado["Nome"])
+        if 'APELIDO_DISPOSITIVO' in p.text:
+            p.text = p.text.replace('APELIDO_DISPOSITIVO', apelido_dispositivo)
+        if 'MODELO_DISPOSITIVO' in p.text:
+            p.text = p.text.replace('MODELO_DISPOSITIVO', modelo_dispositivo)
+        if 'CHAVE_MULTICANAL' in p.text:
+            p.text = p.text.replace('CHAVE_MULTICANAL', chave_multicanal)
+        if 'NOME_COLABORADOR' in p.text:
+            p.text = p.text.replace('NOME_COLABORADOR', nome_colaborador)
+        if 'CPF_COLABORADOR' in p.text:
+            p.text = p.text.replace('CPF_COLABORADOR', cpf_colaborador)
 
-            doc = Document("modelo.docx")
+    # Preenche a data e hora
+    data_atual = datetime.now().strftime("%d/%m/%Y %H:%M")
+    for p in doc.paragraphs:
+        if 'DATA_HORA' in p.text:
+            p.text = p.text.replace('DATA_HORA', data_atual)
 
-        elif tipo == "PJ":
-            nome_empresa = request.form["nome_empresa"]
-            dados = carregar_dados(nome_empresa)
+    # Salva o documento preenchido
+    arquivo_gerado = "documento_preenchido.docx"
+    doc.save(arquivo_gerado)
 
-            if not dados:
-                return "Empresa não encontrada."
+    # Verifica se o arquivo foi criado corretamente
+    if not os.path.exists(arquivo_gerado):
+        return "Erro: o documento não foi criado.", 500
 
-            substituicoes = {
-                "NOMEDAEMPRESA": nome_empresa,
-                "PESSOAJURIDICA": formatar_cpf(dados.get("CPF/CNPJ", "")),
-                "LUGAR": dados.get("Endereço", ""),
-                "CITY": dados.get("Cidade", ""),
-                "NOMECOOPERADO": request.form["nome_cooperado"],
-                "ESTADOCIVIL": request.form["estado_civil"],
-                "OCUPACAO": request.form["ocupacao"],
-                "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
-                "RGCOOPERADO": formatar_rg(request.form["rg"]),
-                "ENDERECO": request.form["endereco"],
-                "CEP": formatar_cep(request.form["cep"]),
-                "CIDADE": request.form["cidade"],
-                "APELIDODISPOSITIVO": request.form["apelido"],
-                "MODELODISPOSITIVO": request.form["modelo"],
-                "CHAVEMULTICANAL": request.form["chave"],
-                "DATA": data_atual,
-                "HORA": hora_atual,
-                "LOCAL": request.form["local"],
-                "NOMECOLABORADOR": request.form["colaborador"],
-                "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
-            }
+    return send_file(
+        arquivo_gerado,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name="documento_preenchido.docx"
+    )
 
-            doc = Document("modelo_pj.docx")
-
-        else:
-            return "Tipo inválido. Use PF, AGRO ou PJ."
-
-        substituir_texto_formatado(doc.paragraphs, substituicoes)
-        for tabela in doc.tables:
-            for linha in tabela.rows:
-                for celula in linha.cells:
-                    substituir_texto_formatado(celula.paragraphs, substituicoes)
-
-        output = BytesIO()
-        doc.save(output)
-        output.seek(0)
-
-        return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
-
-    return render_template("index.html")
+if __name__ == '__main__':
+    app.run(debug=True)
