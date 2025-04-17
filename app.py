@@ -12,7 +12,7 @@ DADOS_COOPERADOS = []
 
 def carregar_dados_uma_vez():
     global DADOS_COOPERADOS
-    path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
+    path = os.path.join(os.path.dirname(__file__), "TESTAR.xlsx")
     wb = load_workbook(path, data_only=True)
     ws = wb.active
     colunas = [cell.value for cell in ws[1]]
