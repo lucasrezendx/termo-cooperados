@@ -8,36 +8,31 @@ import pytz
 
 app = Flask(__name__)
 
+# Função para formatação de CPF
 def formatar_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, str(cpf)))
     return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
 
+# Função para formatar RG
 def formatar_rg(rg):
     rg = ''.join(filter(str.isdigit, str(rg)))
     return f'{rg[:2]}.{rg[2:5]}.{rg[5:8]}-{rg[8:]}' if len(rg) == 9 else rg
 
+# Função para formatar CEP
 def formatar_cep(cep):
     cep = ''.join(filter(str.isdigit, str(cep)))
     return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
 
-# Função que substitui preservando a formatação
+# Função para substituir mantendo formatação
 def substituir_texto_formatado(paragrafos, substituicoes):
     for paragrafo in paragrafos:
         for chave, valor in substituicoes.items():
             if chave in paragrafo.text:
-                texto_novo = ""
                 for run in paragrafo.runs:
                     if chave in run.text:
-                        partes = run.text.split(chave)
-                        for i, parte in enumerate(partes):
-                            texto_novo += parte
-                            if i < len(partes) - 1:
-                                texto_novo += valor
-                        run.text = texto_novo
-                        texto_novo = ""
-                    # Se não contiver a chave, mantém o texto original
-    return
+                        run.text = run.text.replace(chave, valor)
 
+# Função para carregar dados da planilha Excel
 def carregar_dados(nome_busca):
     path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
     wb = load_workbook(path, data_only=True)
@@ -53,7 +48,6 @@ def carregar_dados(nome_busca):
 def index():
     if request.method == "POST":
         tipo = request.form.get("tipo", "").upper()
-
         now = datetime.now(pytz.timezone("America/Sao_Paulo"))
         data_atual = now.strftime("%d/%m/%Y")
         hora_atual = now.strftime("%H:%M")
@@ -77,12 +71,10 @@ def index():
                 "RGCOOPERADO": formatar_rg(request.form["rg"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
-                "CHAVEMULTICANAL": request.form["chave"],
                 "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
-
             doc = Document("modelo.docx")
 
         elif tipo == "PJ":
@@ -92,12 +84,12 @@ def index():
                 return "Empresa não encontrada."
 
             substituicoes = {
+                "EMPRESA": empresa,
                 "NOMECOOPERADO": request.form["nome_cooperado"],
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
                 "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
                 "RGCOOPERADO": formatar_rg(request.form["rg"]),
-                "EMPRESA": empresa,
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
@@ -110,12 +102,12 @@ def index():
                 "DATA": data_atual,
                 "HORA": hora_atual,
             }
-
             doc = Document("modelo_pj.docx")
 
         else:
             return "Tipo inválido. Use PF, AGRO ou PJ."
 
+        # Substituição em parágrafos e tabelas
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
             for linha in tabela.rows:
@@ -125,7 +117,6 @@ def index():
         output = BytesIO()
         doc.save(output)
         output.seek(0)
-
         return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
 
     return render_template("index.html")
