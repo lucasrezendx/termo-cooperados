@@ -40,7 +40,7 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                 paragrafo.runs[0].text = novo_texto
 
 def carregar_dados(nome_busca):
-    path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
+    path = os.path.join(os.path.dirname(__file__), "TESTAR.xlsx")
     wb = load_workbook(path, data_only=True)
     ws = wb.active
     colunas = [cell.value for cell in ws[1]]
