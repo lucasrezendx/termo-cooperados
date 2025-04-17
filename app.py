@@ -15,13 +15,19 @@ def carregar_dados_uma_vez():
     path = os.path.join(os.path.dirname(__file__), "TESTAR.xlsx")
     wb = load_workbook(path, data_only=True)
     ws = wb.active
+
     colunas = [cell.value for cell in ws[1]]
+
     for row in ws.iter_rows(min_row=2, values_only=True):
-        DADOS_COOPERADOS.append(dict(zip(colunas, row)))
+        dados = dict(zip(colunas, row))
+        nome = row[5]  # Coluna F (índice 5)
+        if nome:  # Só adiciona se houver nome na coluna F
+            dados["Nome"] = nome
+            DADOS_COOPERADOS.append(dados)
 
 def buscar_cooperado_por_nome(nome_busca):
     for dados in DADOS_COOPERADOS:
-        if dados["Nome"] and dados["Nome"].strip().lower() == nome_busca.strip().lower():
+        if dados.get("Nome") and dados["Nome"].strip().lower() == nome_busca.strip().lower():
             return dados
     return None
 
