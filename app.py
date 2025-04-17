@@ -4,23 +4,26 @@ from datetime import datetime
 from openpyxl import load_workbook
 from io import BytesIO
 import os
-import pytz  # Importando pytz
+import pytz
 
 app = Flask(__name__)
 
-# Funções de formatação
+# Função para formatação de CPF
 def formatar_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, str(cpf)))
     return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
 
+# Função para formatar RG
 def formatar_rg(rg):
     rg = ''.join(filter(str.isdigit, str(rg)))
     return f'{rg[:2]}.{rg[2:5]}.{rg[5:8]}-{rg[8:]}' if len(rg) == 9 else rg
 
+# Função para formatar CEP
 def formatar_cep(cep):
     cep = ''.join(filter(str.isdigit, str(cep)))
     return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
 
+# Função para substituir texto no documento Word
 def substituir_texto_formatado(paragrafos, substituicoes):
     for paragrafo in paragrafos:
         for chave, valor in substituicoes.items():
@@ -29,11 +32,11 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                     if chave in run.text:
                         run.text = run.text.replace(chave, valor)
 
+# Função para carregar dados da planilha Excel
 def carregar_dados(nome_busca):
     path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
     wb = load_workbook(path, data_only=True)
     ws = wb.active
-
     colunas = [cell.value for cell in ws[1]]
     for row in ws.iter_rows(min_row=2, values_only=True):
         dados = dict(zip(colunas, row))
@@ -45,20 +48,15 @@ def carregar_dados(nome_busca):
 def index():
     if request.method == "POST":
         tipo = request.form.get("tipo", "").upper()
+        now = datetime.now(pytz.timezone("America/Sao_Paulo"))
+        data_atual = now.strftime("%d/%m/%Y")
+        hora_atual = now.strftime("%H:%M")
 
-        # Obtendo a hora atual com fuso de Brasília
-        fuso_brasilia = pytz.timezone('America/Sao_Paulo')
-        agora = datetime.now(fuso_brasilia)
-        data_atual = agora.strftime("%d/%m/%Y")
-        hora_atual = agora.strftime("%H:%M")
-
-        if tipo in ["PF", "AGRO"]:
+        if tipo == "PF" or tipo == "AGRO":
             nome = request.form["nome"]
             dados = carregar_dados(nome)
-
             if not dados:
                 return "Cooperado não encontrado."
-
             substituicoes = {
                 "NOMECOOPERADO": dados.get("Nome", ""),
                 "ESTADOCIVIL": dados.get("Estado Civil", ""),
@@ -68,7 +66,7 @@ def index():
                 "CEP": formatar_cep(dados.get("CEP", "")),
                 "CIDADE": dados.get("Cidade", ""),
                 "DATA": data_atual,
-                "HORA": hora_atual,  # Hora ajustada
+                "HORA": hora_atual,
                 "RGCOOPERADO": formatar_rg(request.form["rg"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
@@ -77,41 +75,33 @@ def index():
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
             }
-
             doc = Document("modelo.docx")
-
         elif tipo == "PJ":
-            nome_empresa = request.form["nome_empresa"]
-            dados = carregar_dados(nome_empresa)
-
-            if not dados:
+            empresa = request.form["empresa"]
+            dados_empresa = carregar_dados(empresa)
+            if not dados_empresa:
                 return "Empresa não encontrada."
 
             substituicoes = {
-                "NOMEDAEMPRESA": nome_empresa,
-                "PESSOAJURIDICA": formatar_cpf(dados.get("CPF/CNPJ", "")),
-                "LUGAR": dados.get("Endereço", ""),
-                "CITY": dados.get("Cidade", ""),
-                "NOMECOOPERADO": request.form["nome_cooperado"],
+                "NOMECOOPERADO": request.form["nome"],
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
                 "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
                 "RGCOOPERADO": formatar_rg(request.form["rg"]),
-                "ENDERECO": request.form["endereco"],
-                "CEP": formatar_cep(request.form["cep"]),
-                "CIDADE": request.form["cidade"],
+                "EMPRESA": empresa,
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
-                "DATA": data_atual,
-                "HORA": hora_atual,  # Hora ajustada
                 "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
+                "LUGAR": dados_empresa.get("Endereço", ""),
+                "CITY": dados_empresa.get("Cidade", ""),
+                "PESSOAJURIDICA": formatar_cpf(dados_empresa.get("CPF/CNPJ", "")),
+                "DATA": data_atual,
+                "HORA": hora_atual,
             }
-
             doc = Document("modelo_pj.docx")
-
         else:
             return "Tipo inválido. Use PF, AGRO ou PJ."
 
@@ -128,6 +118,3 @@ def index():
         return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
 
     return render_template("index.html")
-
-if __name__ == "__main__":
-    app.run(debug=True)
