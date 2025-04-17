@@ -25,13 +25,19 @@ def formatar_cep(cep):
     cep = ''.join(filter(str.isdigit, str(cep)))
     return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
 
+# NOVA FUNÇÃO ROBUSTA para substituir textos mesmo divididos em runs
 def substituir_texto_formatado(paragrafos, substituicoes):
     for paragrafo in paragrafos:
+        texto_completo = "".join(run.text for run in paragrafo.runs)
+        novo_texto = texto_completo
         for chave, valor in substituicoes.items():
-            if chave in paragrafo.text:
-                for run in paragrafo.runs:
-                    if chave in run.text:
-                        run.text = run.text.replace(chave, valor)
+            if chave in novo_texto:
+                novo_texto = novo_texto.replace(chave, valor)
+        if novo_texto != texto_completo:
+            for run in paragrafo.runs:
+                run.text = ""
+            if paragrafo.runs:
+                paragrafo.runs[0].text = novo_texto
 
 def carregar_dados(nome_busca):
     path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
@@ -110,6 +116,7 @@ def index():
         else:
             return "Tipo inválido. Use PF, AGRO ou PJ."
 
+        # Substituir em parágrafos e em células de tabelas
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
             for linha in tabela.rows:
