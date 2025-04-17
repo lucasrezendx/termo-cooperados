@@ -8,22 +8,18 @@ import pytz
 
 app = Flask(__name__)
 
-# Função para formatação de CPF
 def formatar_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, str(cpf)))
     return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
 
-# Função para formatar RG
 def formatar_rg(rg):
     rg = ''.join(filter(str.isdigit, str(rg)))
     return f'{rg[:2]}.{rg[2:5]}.{rg[5:8]}-{rg[8:]}' if len(rg) == 9 else rg
 
-# Função para formatar CEP
 def formatar_cep(cep):
     cep = ''.join(filter(str.isdigit, str(cep)))
     return f'{cep[:5]}-{cep[5:]}' if len(cep) == 8 else cep
 
-# Função para substituir mantendo formatação
 def substituir_texto_formatado(paragrafos, substituicoes):
     for paragrafo in paragrafos:
         for chave, valor in substituicoes.items():
@@ -32,7 +28,6 @@ def substituir_texto_formatado(paragrafos, substituicoes):
                     if chave in run.text:
                         run.text = run.text.replace(chave, valor)
 
-# Função para carregar dados da planilha Excel
 def carregar_dados(nome_busca):
     path = os.path.join(os.path.dirname(__file__), "cooperados.xlsx")
     wb = load_workbook(path, data_only=True)
@@ -89,7 +84,7 @@ def index():
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
                 "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
-                "RGCOOPERADO": formatar_rg(request.form["rg"]),
+                "RGCOOPERADO": formatar_rg(request.form["rg_cooperado"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
@@ -99,6 +94,9 @@ def index():
                 "LUGAR": dados_empresa.get("Endereço", ""),
                 "CITY": dados_empresa.get("Cidade", ""),
                 "PESSOAJURIDICA": formatar_cpf(dados_empresa.get("CPF/CNPJ", "")),
+                "ENDERECO": dados_empresa.get("Endereço", ""),
+                "CEP": formatar_cep(dados_empresa.get("CEP", "")),
+                "CIDADE": dados_empresa.get("Cidade", ""),
                 "DATA": data_atual,
                 "HORA": hora_atual,
             }
@@ -107,7 +105,6 @@ def index():
         else:
             return "Tipo inválido. Use PF, AGRO ou PJ."
 
-        # Substituição em parágrafos e tabelas
         substituir_texto_formatado(doc.paragraphs, substituicoes)
         for tabela in doc.tables:
             for linha in tabela.rows:
