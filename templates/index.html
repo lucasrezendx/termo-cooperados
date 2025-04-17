@@ -2,83 +2,39 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Gerar Termo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 8px;
-            margin-top: 4px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        #chave_multicanal_field {
-            display: none;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Termo de Cooperado</title>
 </head>
 <body>
-    <h2>Gerar Termo de Responsabilidade</h2>
-    <form action="/" method="post">
-        <label for="tipo">Tipo de Cooperado:</label>
-        <select name="tipo" id="tipo" required onchange="toggleChaveMulticanal()">
-            <option value="">Selecione</option>
-            <option value="PF">Pessoa Física</option>
-            <option value="AGRO">AGRO</option>
-            <option value="PJ">Pessoa Jurídica</option>
-        </select>
+    <h1>Gerar Termo de Cooperado</h1>
+    <form action="/gerar" method="POST">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required><br><br>
 
-        <label for="nome">Nome do Cooperado/Empresa:</label>
-        <input type="text" name="nome" id="nome" required>
+        <label for="apelido">Apelido do dispositivo:</label>
+        <input type="text" id="apelido" name="apelido" required><br><br>
 
-        <div id="campos_adicionais">
-            <label for="RG">RG do Cooperado:</label>
-            <input type="text" name="RG" id="RG">
+        <label for="modelo">Modelo do dispositivo:</label>
+        <input type="text" id="modelo" name="modelo" required><br><br>
 
-            <label for="Apelido do Dispositivo">Apelido do Dispositivo:</label>
-            <input type="text" name="Apelido do Dispositivo" id="Apelido do Dispositivo">
+        <label for="chave">Chave Multi Canal:</label>
+        <input type="text" id="chave" name="chave" required><br><br>
 
-            <label for="Modelo do Dispositivo">Modelo do Dispositivo:</label>
-            <input type="text" name="Modelo do Dispositivo" id="Modelo do Dispositivo">
+        <label for="colaborador">Nome do colaborador:</label>
+        <input type="text" id="colaborador" name="colaborador" required><br><br>
 
-            <div id="chave_multicanal_field">
-                <label for="Chave Multicanal">Chave Multicanal ou Secundária:</label>
-                <input type="text" name="Chave Multicanal" id="Chave Multicanal">
-            </div>
+        <label for="cpf">CPF do colaborador:</label>
+        <input type="text" id="cpf" name="cpf" required><br><br>
 
-            <label for="Local">Local:</label>
-            <input type="text" name="Local" id="Local">
-
-            <label for="Nome do Colaborador">Nome do Colaborador:</label>
-            <input type="text" name="Nome do Colaborador" id="Nome do Colaborador">
-
-            <label for="CPF do Colaborador">CPF do Colaborador:</label>
-            <input type="text" name="CPF do Colaborador" id="CPF do Colaborador">
-        </div>
+        <label for="tipo_pessoa">Tipo de Pessoa:</label><br>
+        <input type="radio" id="pf" name="tipo_pessoa" value="PF" required>
+        <label for="pf">Pessoa Física</label><br>
+        <input type="radio" id="pj" name="tipo_pessoa" value="PJ">
+        <label for="pj">Pessoa Jurídica</label><br>
+        <input type="radio" id="agro" name="tipo_pessoa" value="AGRO">
+        <label for="agro">Agro</label><br><br>
 
         <button type="submit">Gerar Documento</button>
     </form>
-
-    <script>
-        function toggleChaveMulticanal() {
-            const tipo = document.getElementById("tipo").value;
-            const chaveField = document.getElementById("chave_multicanal_field");
-            if (tipo === "PJ") {
-                chaveField.style.display = "block";
-            } else {
-                chaveField.style.display = "none";
-                document.getElementById("Chave Multicanal").value = "";
-            }
-        }
-    </script>
 </body>
 </html>
