@@ -2,82 +2,92 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preencher Termo de Cooperado</title>
+    <title>Gerador de Termos</title>
+    <script>
+        function toggleCampos() {
+            const tipo = document.getElementById("tipo").value;
+            document.getElementById("campos_pf_agro").style.display = (tipo === "PF" || tipo === "AGRO") ? "block" : "none";
+            document.getElementById("campos_pj").style.display = (tipo === "PJ") ? "block" : "none";
+        }
+
+        window.onload = toggleCampos;
+    </script>
 </head>
 <body>
-    <h1>Preencher Termo de Cooperado</h1>
-    
-    <form method="POST" action="/">
+    <h1>Gerador de Termos</h1>
+    <form method="POST">
         <label for="tipo">Tipo de Cooperado:</label>
-        <select name="tipo" id="tipo" onchange="mostrarCampos()">
+        <select id="tipo" name="tipo" onchange="toggleCampos()">
             <option value="PF">Pessoa Física</option>
-            <option value="PJ">Pessoa Jurídica</option>
             <option value="AGRO">Agro</option>
+            <option value="PJ">Pessoa Jurídica</option>
         </select>
 
-        <div id="campos_pf_agro">
-            <h2>Dados do Cooperado</h2>
-            <label for="nome">Nome do Cooperado:</label>
-            <input type="text" name="nome" id="nome" required><br><br>
-            <label for="rg">RG:</label>
-            <input type="text" name="rg" id="rg" required><br><br>
-            <label for="apelido">Apelido do Dispositivo:</label>
-            <input type="text" name="apelido" id="apelido" required><br><br>
-            <label for="modelo">Modelo do Dispositivo:</label>
-            <input type="text" name="modelo" id="modelo" required><br><br>
-            <label for="chave">Chave Multicanal:</label>
-            <input type="text" name="chave" id="chave" required><br><br>
-            <label for="local">Local:</label>
-            <input type="text" name="local" id="local" required><br><br>
-            <label for="colaborador">Nome do Colaborador:</label>
-            <input type="text" name="colaborador" id="colaborador" required><br><br>
-            <label for="cpf_colaborador">CPF do Colaborador:</label>
-            <input type="text" name="cpf_colaborador" id="cpf_colaborador" required><br><br>
+        <!-- Campos para PF e AGRO -->
+        <div id="campos_pf_agro" style="display:none; margin-top: 15px;">
+            <label>Nome do Cooperado:</label>
+            <input type="text" name="nome" required><br>
+
+            <label>RG:</label>
+            <input type="text" name="rg" required><br>
+
+            <label>Apelido do Dispositivo:</label>
+            <input type="text" name="apelido" required><br>
+
+            <label>Modelo do Dispositivo:</label>
+            <input type="text" name="modelo" required><br>
+
+            <label>Local:</label>
+            <input type="text" name="local" required><br>
+
+            <label>Nome do Colaborador:</label>
+            <input type="text" name="colaborador" required><br>
+
+            <label>CPF do Colaborador:</label>
+            <input type="text" name="cpf_colaborador" required><br>
         </div>
 
-        <div id="campos_pj" style="display: none;">
-            <h2>Dados da Pessoa Jurídica</h2>
-            <label for="nome">Nome do Cooperado:</label>
-            <input type="text" name="nome" id="nome_pj" required><br><br>
-            <label for="estado_civil">Estado Civil:</label>
-            <input type="text" name="estado_civil" id="estado_civil" required><br><br>
-            <label for="ocupacao">Ocupação:</label>
-            <input type="text" name="ocupacao" id="ocupacao" required><br><br>
-            <label for="cpf">CPF:</label>
-            <input type="text" name="cpf" id="cpf" required><br><br>
-            <label for="rg">RG:</label>
-            <input type="text" name="rg" id="rg_pj" required><br><br>
-            <label for="empresa">Empresa:</label>
-            <input type="text" name="empresa" id="empresa" required><br><br>
-            <label for="apelido">Apelido do Dispositivo:</label>
-            <input type="text" name="apelido" id="apelido_pj" required><br><br>
-            <label for="modelo">Modelo do Dispositivo:</label>
-            <input type="text" name="modelo" id="modelo_pj" required><br><br>
-            <label for="chave">Chave Multicanal:</label>
-            <input type="text" name="chave" id="chave_pj" required><br><br>
-            <label for="local">Local:</label>
-            <input type="text" name="local" id="local_pj" required><br><br>
-            <label for="colaborador">Nome do Colaborador:</label>
-            <input type="text" name="colaborador" id="colaborador_pj" required><br><br>
-            <label for="cpf_colaborador">CPF do Colaborador:</label>
-            <input type="text" name="cpf_colaborador" id="cpf_colaborador_pj" required><br><br>
+        <!-- Campos para PJ -->
+        <div id="campos_pj" style="display:none; margin-top: 15px;">
+            <label>Empresa:</label>
+            <input type="text" name="nome_empresa" required><br>
+
+            <label>Nome do Cooperado:</label>
+            <input type="text" name="nome_cooperado" required><br>
+
+            <label>Estado Civil:</label>
+            <input type="text" name="estado_civil" required><br>
+
+            <label>Ocupação:</label>
+            <input type="text" name="ocupacao" required><br>
+
+            <label>CPF:</label>
+            <input type="text" name="cpf" required><br>
+
+            <label>RG:</label>
+            <input type="text" name="rg" required><br>
+
+            <label>Apelido do Dispositivo:</label>
+            <input type="text" name="apelido" required><br>
+
+            <label>Modelo do Dispositivo:</label>
+            <input type="text" name="modelo" required><br>
+
+            <label>Chave Multicanal:</label>
+            <input type="text" name="chave" required><br>
+
+            <label>Local:</label>
+            <input type="text" name="local" required><br>
+
+            <label>Nome do Colaborador:</label>
+            <input type="text" name="colaborador" required><br>
+
+            <label>CPF do Colaborador:</label>
+            <input type="text" name="cpf_colaborador" required><br>
         </div>
 
-        <input type="submit" value="Preencher Termo">
+        <br>
+        <button type="submit">Preencher Termo</button>
     </form>
-
-    <script>
-        function mostrarCampos() {
-            var tipo = document.getElementById("tipo").value;
-            if (tipo === "PJ") {
-                document.getElementById("campos_pf_agro").style.display = "none";
-                document.getElementById("campos_pj").style.display = "block";
-            } else {
-                document.getElementById("campos_pf_agro").style.display = "block";
-                document.getElementById("campos_pj").style.display = "none";
-            }
-        }
-    </script>
 </body>
 </html>
