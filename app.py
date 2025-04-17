@@ -8,9 +8,14 @@ import pytz
 
 app = Flask(__name__)
 
-def formatar_cpf(cpf):
-    cpf = ''.join(filter(str.isdigit, str(cpf)))
-    return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
+# Formata CPF ou CNPJ automaticamente
+def formatar_cpf_cnpj(valor):
+    valor = ''.join(filter(str.isdigit, str(valor)))
+    if len(valor) == 11:
+        return f"{valor[:3]}.{valor[3:6]}.{valor[6:9]}-{valor[9:]}"
+    elif len(valor) == 14:
+        return f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:12]}-{valor[12:]}"
+    return valor
 
 def formatar_rg(rg):
     rg = ''.join(filter(str.isdigit, str(rg)))
@@ -57,7 +62,7 @@ def index():
                 "NOMECOOPERADO": dados.get("Nome", ""),
                 "ESTADOCIVIL": dados.get("Estado Civil", ""),
                 "OCUPACAO": dados.get("Ocupação", ""),
-                "CPFCOOPERADO": formatar_cpf(dados.get("CPF/CNPJ", "")),
+                "CPFCOOPERADO": formatar_cpf_cnpj(dados.get("CPF/CNPJ", "")),
                 "ENDERECO": dados.get("Endereço", ""),
                 "CEP": formatar_cep(dados.get("CEP", "")),
                 "CIDADE": dados.get("Cidade", ""),
@@ -68,7 +73,7 @@ def index():
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
-                "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
+                "CPFCOLABORADOR": formatar_cpf_cnpj(request.form["cpf_colaborador"]),
             }
             doc = Document("modelo.docx")
 
@@ -83,20 +88,20 @@ def index():
                 "NOMECOOPERADO": request.form["nome_cooperado"],
                 "ESTADOCIVIL": request.form["estado_civil"],
                 "OCUPACAO": request.form["ocupacao"],
-                "CPFCOOPERADO": formatar_cpf(request.form["cpf"]),
+                "CPFCOOPERADO": formatar_cpf_cnpj(request.form["cpf"]),
                 "RGCOOPERADO": formatar_rg(request.form["rg_cooperado"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
                 "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
-                "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
+                "CPFCOLABORADOR": formatar_cpf_cnpj(request.form["cpf_colaborador"]),
                 "LUGAR": dados_empresa.get("Endereço", ""),
                 "CITY": dados_empresa.get("Cidade", ""),
-                "PESSOAJURIDICA": formatar_cpf(dados_empresa.get("CPF/CNPJ", "")),
                 "ENDERECO": dados_empresa.get("Endereço", ""),
                 "CEP": formatar_cep(dados_empresa.get("CEP", "")),
                 "CIDADE": dados_empresa.get("Cidade", ""),
+                "PESSOAJURIDICA": formatar_cpf_cnpj(dados_empresa.get("CPF/CNPJ", "")),
                 "DATA": data_atual,
                 "HORA": hora_atual,
             }
