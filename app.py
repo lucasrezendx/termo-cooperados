@@ -4,9 +4,11 @@ from datetime import datetime
 from openpyxl import load_workbook
 from io import BytesIO
 import os
+import pytz  # Importando pytz
 
 app = Flask(__name__)
 
+# Funções de formatação
 def formatar_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, str(cpf)))
     return f'{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}' if len(cpf) == 11 else cpf
@@ -44,9 +46,11 @@ def index():
     if request.method == "POST":
         tipo = request.form.get("tipo", "").upper()
 
-        now = datetime.now()
-        data_atual = now.strftime("%d/%m/%Y")
-        hora_atual = now.strftime("%H:%M")
+        # Obtendo a hora atual com fuso de Brasília
+        fuso_brasilia = pytz.timezone('America/Sao_Paulo')
+        agora = datetime.now(fuso_brasilia)
+        data_atual = agora.strftime("%d/%m/%Y")
+        hora_atual = agora.strftime("%H:%M")
 
         if tipo in ["PF", "AGRO"]:
             nome = request.form["nome"]
@@ -64,7 +68,7 @@ def index():
                 "CEP": formatar_cep(dados.get("CEP", "")),
                 "CIDADE": dados.get("Cidade", ""),
                 "DATA": data_atual,
-                "HORA": hora_atual,
+                "HORA": hora_atual,  # Hora ajustada
                 "RGCOOPERADO": formatar_rg(request.form["rg"]),
                 "APELIDODISPOSITIVO": request.form["apelido"],
                 "MODELODISPOSITIVO": request.form["modelo"],
@@ -100,7 +104,7 @@ def index():
                 "MODELODISPOSITIVO": request.form["modelo"],
                 "CHAVEMULTICANAL": request.form["chave"],
                 "DATA": data_atual,
-                "HORA": hora_atual,
+                "HORA": hora_atual,  # Hora ajustada
                 "LOCAL": request.form["local"],
                 "NOMECOLABORADOR": request.form["colaborador"],
                 "CPFCOLABORADOR": formatar_cpf(request.form["cpf_colaborador"]),
@@ -124,3 +128,6 @@ def index():
         return send_file(output, as_attachment=True, download_name="documento_preenchido.docx")
 
     return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
