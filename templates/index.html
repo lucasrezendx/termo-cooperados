@@ -2,60 +2,34 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Gerar Termo</title>
+    <title>Gerador de Termo</title>
     <style>
-        .hidden { display: none; }
         label { display: block; margin-top: 10px; }
         input, select { width: 300px; padding: 5px; }
     </style>
-    <script>
-        function toggleCampos() {
-            const tipo = document.querySelector('select[name="tipo"]').value;
-            document.getElementById('campos-pf-agro').style.display = (tipo === 'PF' || tipo === 'AGRO') ? 'block' : 'none';
-            document.getElementById('campos-pj').style.display = (tipo === 'PJ') ? 'block' : 'none';
-            document.getElementById('chave-multicanal').style.display = (tipo === 'PJ') ? 'block' : 'none';
-        }
-
-        window.onload = toggleCampos;
-    </script>
 </head>
 <body>
-    <h1>Preencher Termo</h1>
-    <form method="POST">
-        <label for="tipo">Tipo:</label>
-        <select name="tipo" onchange="toggleCampos()" required>
+    <h2>Gerar Termo</h2>
+    <form method="post">
+        <label for="tipo">Tipo de pessoa:</label>
+        <select name="tipo" id="tipo" onchange="mostrarCampos()" required>
             <option value="PF">Pessoa Física</option>
             <option value="AGRO">Agro</option>
             <option value="PJ">Pessoa Jurídica</option>
         </select>
 
         <!-- Campos PF/AGRO -->
-        <div id="campos-pf-agro">
-            <label>Nome:</label>
+        <div id="pf_campos">
+            <label>Nome do cooperado (como na planilha):</label>
             <input type="text" name="nome">
 
             <label>RG:</label>
             <input type="text" name="rg">
-
-            <label>Apelido do dispositivo:</label>
-            <input type="text" name="apelido">
-
-            <label>Modelo do dispositivo:</label>
-            <input type="text" name="modelo">
-
-            <label>Local:</label>
-            <input type="text" name="local">
-
-            <label>Nome do colaborador:</label>
-            <input type="text" name="colaborador">
-
-            <label>CPF do colaborador:</label>
-            <input type="text" name="cpf_colaborador">
         </div>
 
         <!-- Campos PJ -->
-        <div id="campos-pj" class="hidden">
-            <label>Nome da empresa:</label>
+        <div id="pj_campos" style="display: none;">
+            <label>Nome da empresa (como na planilha):</label>
             <input type="text" name="nome_empresa">
 
             <label>Nome do cooperado:</label>
@@ -67,13 +41,61 @@
             <label>Ocupação:</label>
             <input type="text" name="ocupacao">
 
-            <label>CPF:</label>
+            <label>CPF do cooperado:</label>
             <input type="text" name="cpf">
 
-            <label>RG:</label>
+            <label>RG do cooperado:</label>
             <input type="text" name="rg">
+        </div>
 
-            <label>Apelido do dispositivo:</label>
-            <input type="text" name="apelido">
+        <hr>
 
-            <label>Modelo do dispositivo:</label>
+        <label>Apelido do dispositivo:</label>
+        <input type="text" name="apelido">
+
+        <label>Modelo do dispositivo:</label>
+        <input type="text" name="modelo">
+
+        <div id="chave_campos">
+            <label id="chave_label" style="display: none;">Chave multicanal:</label>
+            <input type="text" name="chave" id="chave_input" style="display: none;">
+        </div>
+
+        <label>Local:</label>
+        <input type="text" name="local">
+
+        <label>Nome do colaborador:</label>
+        <input type="text" name="colaborador">
+
+        <label>CPF do colaborador:</label>
+        <input type="text" name="cpf_colaborador">
+
+        <br><br>
+        <button type="submit">Preencher termo</button>
+    </form>
+
+    <script>
+        function mostrarCampos() {
+            const tipo = document.getElementById("tipo").value;
+            const pfCampos = document.getElementById("pf_campos");
+            const pjCampos = document.getElementById("pj_campos");
+            const chaveLabel = document.getElementById("chave_label");
+            const chaveInput = document.getElementById("chave_input");
+
+            if (tipo === "PJ") {
+                pfCampos.style.display = "none";
+                pjCampos.style.display = "block";
+                chaveLabel.style.display = "block";
+                chaveInput.style.display = "block";
+            } else {
+                pfCampos.style.display = "block";
+                pjCampos.style.display = "none";
+                chaveLabel.style.display = "none";
+                chaveInput.style.display = "none";
+            }
+        }
+
+        window.onload = mostrarCampos;
+    </script>
+</body>
+</html>
